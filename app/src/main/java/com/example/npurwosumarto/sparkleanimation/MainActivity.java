@@ -4,6 +4,8 @@ import android.content.Context;
 import android.opengl.*;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -34,6 +36,29 @@ class MyGLSurfaceView extends GLSurfaceView {
 
         // Set the Renderer for drawing on the GLSurfaceView
         setRenderer(mRenderer);
+    }
+
+    private float mPreviousX;
+    private float mPreviousY;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent e) {
+        // MotionEvent reports input details from the touch screen
+        // and other input controls. In this case, you are only
+        // interested in events where the touch position changed.
+
+        float x = e.getX();
+        float y = e.getY();
+
+        switch (e.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+                Log.d("mtag", "x: " + x + " y: " + y);
+                mRenderer.addParticle(x, y);
+        }
+
+        mPreviousX = x;
+        mPreviousY = y;
+        return true;
     }
 }
 

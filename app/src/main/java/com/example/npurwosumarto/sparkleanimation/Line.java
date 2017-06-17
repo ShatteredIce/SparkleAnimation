@@ -1,25 +1,25 @@
 package com.example.npurwosumarto.sparkleanimation;
 
+/**
+ * Created by Katsuo on 6/16/2017.
+ */
+
 import android.opengl.GLES20;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
-/**
- * Created by 301968 on 6/15/2017.
- */
-
-public class Triangle {
+public class Line {
 
     private FloatBuffer vertexBuffer;
 
     private final String vertexShaderCode =
             "uniform mat4 uMVPMatrix;" +
-            "attribute vec4 vPosition;" +
-                "void main() {" +
-                "  gl_Position = uMVPMatrix * vPosition;" +
-                "}";
+                    "attribute vec4 vPosition;" +
+                    "void main() {" +
+                    "  gl_Position = uMVPMatrix * vPosition;" +
+                    "}";
 
     private final String fragmentShaderCode =
             "precision mediump float;" +
@@ -35,27 +35,26 @@ public class Triangle {
 
     // number of coordinates per vertex in this array
     static final int COORDS_PER_VERTEX = 3;
-    static float triangleCoords[] = {   // in counterclockwise order:
-            0.0f,  0.622008459f, 0.0f, // top
-            -0.5f, -0.311004243f, 0.0f, // bottom left
-            0.5f, -0.311004243f, 0.0f,  // bottom right
+    static float lineCoords[] = {   // in counterclockwise order:
+            0.0f,  0.0f, 0.0f, // start
+            0.0f, 0.0f, 0.0f, // end
     };
 
     // Set color with red, green, blue and alpha (opacity) values
-    float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
+    float color[] = { 1.0f, 0.0f, 0.0f, 1.0f };
 
-    public Triangle() {
+    public Line() {
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(
                 // (number of coordinate values * 4 bytes per float)
-                triangleCoords.length * 4);
+                lineCoords.length * 4);
         // use the device hardware's native byte order
         bb.order(ByteOrder.nativeOrder());
 
         // create a floating point buffer from the ByteBuffer
         vertexBuffer = bb.asFloatBuffer();
         // add the coordinates to the FloatBuffer
-        vertexBuffer.put(triangleCoords);
+        vertexBuffer.put(lineCoords);
         // set the buffer to read the first coordinate
         vertexBuffer.position(0);
 
@@ -77,7 +76,27 @@ public class Triangle {
         GLES20.glLinkProgram(mProgram);
     }
 
-    private final int vertexCount = triangleCoords.length / COORDS_PER_VERTEX;
+    public void setVertices(float v0, float v1, float v2, float v3, float v4, float v5) {
+        lineCoords[0] = v0;
+        lineCoords[1] = v1;
+        lineCoords[2] = v2;
+        lineCoords[3] = v3;
+        lineCoords[4] = v4;
+        lineCoords[5] = v5;
+
+        vertexBuffer.put(lineCoords);
+        // set the buffer to read the first coordinate
+        vertexBuffer.position(0);
+    }
+
+    public void setColor(float red, float green, float blue, float alpha) {
+        color[0] = red;
+        color[1] = green;
+        color[2] = blue;
+        color[3] = alpha;
+    }
+
+    private final int vertexCount = lineCoords.length / COORDS_PER_VERTEX;
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
     public void draw(float[] mvpMatrix) {
@@ -108,7 +127,7 @@ public class Triangle {
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
 
         // Draw the triangle
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
+        GLES20.glDrawArrays(GLES20.GL_LINES, 0, vertexCount);
 
         // Disable vertex array
         GLES20.glDisableVertexAttribArray(mPositionHandle);
