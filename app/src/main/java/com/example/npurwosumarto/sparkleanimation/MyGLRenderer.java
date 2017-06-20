@@ -45,7 +45,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     int window_width = 0;
     int window_height = 0;
     float window_ratio = 0f;
-    final int PARTICLE_LIFETIME = 10;
     int touch_delay = 0;
 
     public void onDrawFrame(GL10 unused) {
@@ -78,33 +77,43 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 //                -0.5f, -0.8f, 0.0f);
 //        addLine(test);
 
-        for(int i = 0; i < particles.size(); i++){
-            for(int j = i + 1; j < particles.size(); j++){
-                Particle first_p = particles.get(i);
-                Particle second_p = particles.get(j);
-                if(getParticleDistance(first_p, second_p) < 1.0) {
-                    Line l = new Line();
-                    l.setVertices(first_p.getX(), first_p.getY(), 0, second_p.getX(), second_p.getY(), 0);
-                    addLine(l);
-                }
-            }
-        }
         counter++;
         if(touch_delay > 0) {
             touch_delay--;
         }
         //update particle movement
-        if(counter == 2) {
+        if(counter == 1) {
             for (int k = 0; k < particles.size(); k++) {
                 Particle current = particles.get(k);
-                if (current.getLifetime() >= PARTICLE_LIFETIME) {
+                if (current.getLifetime() >= current.getMaxLifetime()) {
                     removeParticle(current);
                     k--;
                 } else {
+//                    if(current.getLifetime() % 2 == 0){
+//                        Particle p = new Particle(current.getX(), current.getY(), current.getLifetime() + 1);
+//                        particles.add(p);
+//                    }
                     current.update();
                 }
             }
             counter = 0;
+        }
+
+        for(int i = 0; i < particles.size(); i++){
+            for(int j = i + 1; j < particles.size(); j++){
+                Particle first_p = particles.get(i);
+                Particle second_p = particles.get(j);
+                if(getParticleDistance(first_p, second_p) < 1.0 && first_p.getLifetime() == second_p.getLifetime()) {
+                    Line l = new Line();
+                    l.setVertices(first_p.getX(), first_p.getY(), 0, second_p.getX(), second_p.getY(), 0);
+                    float yellow_shift = 0;
+                    yellow_shift = 1.0f - (first_p.getLifetime() / 20f);
+                    yellow_shift = (yellow_shift < 0) ? 0 : yellow_shift;
+                    //Log.d("mtag", "shift: " + yellow_shift);
+                    l.setColor(1.0f, yellow_shift, 0, 1);
+                    addLine(l);
+                }
+            }
         }
 
 //        Log.d("mtag", "Number of particles" + particles.size());
@@ -156,14 +165,16 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         return result;
     }
 
-    public void addParticle(float x, float y){
+    public void addParticle(float x, float y, int lifetime, int num){
         if(touch_delay == 0) {
             float p_width = ((x / (window_width / 2)) - 1) * window_ratio;
             Log.d("mtag", "w_width: " + window_width + " w_r: " + window_ratio);
             float p_height = ((y / (window_height / 2)) - 1) * -1;
             Log.d("mtag", "p_width: " + p_width + " p_height: " + p_height);
-            Particle p = new Particle(p_width, p_height);
-            particles.add(p);
+            for(int i = 0; i < num; i++) {
+                Particle p = new Particle(p_width, p_height, lifetime);
+                particles.add(p);
+            }
             touch_delay = 5;
         }
     }

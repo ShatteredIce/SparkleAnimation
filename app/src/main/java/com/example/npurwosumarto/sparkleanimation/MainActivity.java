@@ -40,6 +40,7 @@ class MyGLSurfaceView extends GLSurfaceView {
 
     private float mPreviousX;
     private float mPreviousY;
+    private int NUM_PARTICLES = 6;
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
@@ -51,9 +52,9 @@ class MyGLSurfaceView extends GLSurfaceView {
         float y = e.getY();
 
         switch (e.getAction()) {
-            case MotionEvent.ACTION_MOVE:
+            case MotionEvent.ACTION_DOWN:
                 Log.d("mtag", "x: " + x + " y: " + y);
-                mRenderer.addParticle(x, y);
+                mRenderer.addParticle(x, y, 0, NUM_PARTICLES);
         }
 
         mPreviousX = x;

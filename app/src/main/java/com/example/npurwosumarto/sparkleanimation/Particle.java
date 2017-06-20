@@ -13,13 +13,21 @@ public class Particle {
     public float x_velocity;
     public float y_velocity;
     public int lifetime;
+    public static int MAX_LIFTIME = 25;
+    static Random random = new Random();
 
     public Particle(float startx, float starty){
         xpos = startx;
         ypos = starty;
-        Random random = new Random();
         x_velocity = ((float)random.nextInt(201) - 100)/10000;
         y_velocity = ((float)random.nextInt(201) - 100)/10000;
+        lifetime = 0;
+    }
+
+    public Particle(float startx, float starty, int newlifetime){
+        this(startx, starty);
+        lifetime = newlifetime;
+
     }
 
     public void update(){
@@ -34,6 +42,10 @@ public class Particle {
 
     public float getY(){
         return ypos;
+    }
+
+    public int getMaxLifetime(){
+        return MAX_LIFTIME;
     }
 
     public int getLifetime(){
