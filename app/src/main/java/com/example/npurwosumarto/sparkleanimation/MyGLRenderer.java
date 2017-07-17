@@ -20,8 +20,8 @@ import javax.microedition.khronos.opengles.GL10;
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private Triangle mTriangle;
-    private Line testLine;
-    private ArrayList<Particle> particles;
+    private ArrayList<Particle> allparticles;
+    private ArrayList<Particle> newparticles;
     private ArrayList<Line> lines;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -33,8 +33,13 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         mTriangle = new Triangle();
-        particles = new ArrayList<>();
+        allparticles = new ArrayList<>();
+        newparticles = new ArrayList<>();
         lines = new ArrayList<>();
+//        Line test = new Line();
+//        test.p1 = new Particle(0.0f, 0.0f); // top
+//        test.p2 = new Particle(0.0f, 0.0f);
+//        addLine(test);
     }
 
     //private float[] mTranslationMatrix = new float[16];
@@ -72,58 +77,59 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // Draw triangle
         //mTriangle.draw(mMVPMatrix);
 
-//        Line test = new Line();
-//        test.setVertices(0.0f,  1.0f, 0.0f, // top
-//                -0.5f, -0.8f, 0.0f);
-//        addLine(test);
 
         counter++;
         if(touch_delay > 0) {
             touch_delay--;
         }
-        //update particle movement
+
+        //add new lines
+        if(newparticles.size() != 0) {
+            for (int i = 0; i < newparticles.size(); i++) {
+                for (int j = i + 1; j < newparticles.size(); j++) {
+                    Line l = new Line();
+                    l.p1 = newparticles.get(i);
+                    l.p2 = newparticles.get(j);
+                    lines.add(l);
+                }
+            }
+            newparticles.clear();
+        }
+
         if(counter == 1) {
-            for (int k = 0; k < particles.size(); k++) {
-                Particle current = particles.get(k);
-                if (current.getLifetime() >= current.getMaxLifetime()) {
-                    removeParticle(current);
-                    k--;
-                } else {
-//                    if(current.getLifetime() % 2 == 0){
-//                        Particle p = new Particle(current.getX(), current.getY(), current.getLifetime() + 1);
-//                        particles.add(p);
-//                    }
+            //update particle movement
+            for(int p = 0; p < allparticles.size(); p++){
+                Particle current = allparticles.get(p);
+                if(current.getLifetime() < current.getMaxLifetime()){
                     current.update();
+                }
+                else{
+                    allparticles.remove(current);
+                    p--;
+                }
+            }
+            //update line movement
+            for(int l = 0; l < lines.size(); l++){
+                Line current = lines.get(l);
+                if(current.p1.getLifetime() < current.p1.getMaxLifetime()) {
+                    current.update();
+                }
+                else{
+                    lines.remove(current);
+                    l--;
                 }
             }
             counter = 0;
         }
 
-        for(int i = 0; i < particles.size(); i++){
-            for(int j = i + 1; j < particles.size(); j++){
-                Particle first_p = particles.get(i);
-                Particle second_p = particles.get(j);
-                if(getParticleDistance(first_p, second_p) < 1.0 && first_p.getLifetime() == second_p.getLifetime()) {
-                    Line l = new Line();
-                    l.setVertices(first_p.getX(), first_p.getY(), 0, second_p.getX(), second_p.getY(), 0);
-                    float yellow_shift = 0;
-                    yellow_shift = 1.0f - (first_p.getLifetime() / 20f);
-                    yellow_shift = (yellow_shift < 0) ? 0 : yellow_shift;
-                    //Log.d("mtag", "shift: " + yellow_shift);
-                    l.setColor(1.0f, yellow_shift, 0, 1);
-                    addLine(l);
-                }
-            }
-        }
 
-//        Log.d("mtag", "Number of particles" + particles.size());
+//        Log.d("mtag", "Number of particles" + allparticles.size());
 //        Log.d("mtag", "Number of lines" + lines.size());
 
         for(int l = 0; l < lines.size(); l++){
             lines.get(l).draw(mMVPMatrix);
         }
 
-        lines.clear();
     }
 
     public void onSurfaceChanged(GL10 unused, int width, int height) {
@@ -173,15 +179,14 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             Log.d("mtag", "p_width: " + p_width + " p_height: " + p_height);
             for(int i = 0; i < num; i++) {
                 Particle p = new Particle(p_width, p_height, lifetime);
-                particles.add(p);
+                allparticles.add(p);
+                newparticles.add(p);
             }
             touch_delay = 5;
         }
+
     }
 
-    public void removeParticle(Particle p){
-        particles.remove(p);
-    }
 
     public void addLine(Line l){
         lines.add(l);

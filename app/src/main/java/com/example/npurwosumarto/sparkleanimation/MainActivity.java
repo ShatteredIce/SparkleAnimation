@@ -53,6 +53,7 @@ class MyGLSurfaceView extends GLSurfaceView {
 
         switch (e.getAction()) {
             case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
                 Log.d("mtag", "x: " + x + " y: " + y);
                 mRenderer.addParticle(x, y, 0, NUM_PARTICLES);
         }

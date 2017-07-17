@@ -12,6 +12,9 @@ import java.nio.FloatBuffer;
 
 public class Line {
 
+    public Particle p1;
+    public Particle p2;
+
     private FloatBuffer vertexBuffer;
 
     private final String vertexShaderCode =
@@ -87,6 +90,15 @@ public class Line {
         vertexBuffer.put(lineCoords);
         // set the buffer to read the first coordinate
         vertexBuffer.position(0);
+    }
+
+    public void update(){
+        setVertices(p1.getX(), p1.getY(), 0, p2.getX(), p2.getY(), 0);
+        float yellow_shift = 0;
+        yellow_shift = 1.0f - (p1.getLifetime() / 20f);
+        yellow_shift = (yellow_shift < 0) ? 0 : yellow_shift;
+        //Log.d("mtag", "shift: " + yellow_shift);
+        setColor(1.0f, yellow_shift, 0, 1);
     }
 
     public void setColor(float red, float green, float blue, float alpha) {
