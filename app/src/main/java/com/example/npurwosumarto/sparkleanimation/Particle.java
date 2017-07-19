@@ -33,6 +33,8 @@ public class Particle {
     public void update(){
         xpos += x_velocity;
         ypos += y_velocity;
+        x_velocity *= 0.95;
+        y_velocity *= 0.95;
         lifetime++;
     }
 

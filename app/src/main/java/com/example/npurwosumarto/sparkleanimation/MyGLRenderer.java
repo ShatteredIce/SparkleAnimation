@@ -21,8 +21,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private Triangle mTriangle;
     private ArrayList<Particle> allparticles;
-    private ArrayList<Particle> newparticles;
+    private ArrayList<ArrayList<Particle>> newparticles_list;
+    private ArrayList<Triangle> triangles;
     private ArrayList<Line> lines;
+
+    boolean useLines = true;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
     private final float[] mMVPMatrix = new float[16];
@@ -34,7 +37,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         mTriangle = new Triangle();
         allparticles = new ArrayList<>();
-        newparticles = new ArrayList<>();
+        newparticles_list = new ArrayList<>();
+        triangles = new ArrayList<>();
         lines = new ArrayList<>();
 //        Line test = new Line();
 //        test.p1 = new Particle(0.0f, 0.0f); // top
@@ -83,17 +87,46 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             touch_delay--;
         }
 
-        //add new lines
-        if(newparticles.size() != 0) {
-            for (int i = 0; i < newparticles.size(); i++) {
-                for (int j = i + 1; j < newparticles.size(); j++) {
-                    Line l = new Line();
-                    l.p1 = newparticles.get(i);
-                    l.p2 = newparticles.get(j);
-                    lines.add(l);
+        if(useLines) {
+            //add new lines
+            if (newparticles_list.size() != 0) {
+                for (int l = 0; l < newparticles_list.size(); l++) {
+                    ArrayList<Particle> current = newparticles_list.get(l);
+                    for (int i = 0; i < current.size(); i++) {
+                        for (int j = i + 1; j < current.size(); j++) {
+                            Line n = new Line();
+                            n.p1 = current.get(i);
+                            n.p2 = current.get(j);
+                            lines.add(n);
+                        }
+                    }
+                    current.clear();
+                    newparticles_list.remove(current);
+                    l--;
                 }
             }
-            newparticles.clear();
+        }
+        else {
+            //add new triangles
+            if (newparticles_list.size() != 0) {
+                for (int l = 0; l < newparticles_list.size(); l++) {
+                    ArrayList<Particle> current = newparticles_list.get(l);
+                    for (int i = 0; i < current.size(); i++) {
+                        for (int j = i + 1; j < current.size(); j++) {
+                            for (int k = j + 1; k < current.size(); k++) {
+                                Triangle t = new Triangle();
+                                t.p1 = current.get(i);
+                                t.p2 = current.get(j);
+                                t.p3 = current.get(k);
+                                triangles.add(t);
+                            }
+                        }
+                    }
+                    current.clear();
+                    newparticles_list.remove(current);
+                    l--;
+                }
+            }
         }
 
         if(counter == 1) {
@@ -108,15 +141,28 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                     p--;
                 }
             }
-            //update line movement
-            for(int l = 0; l < lines.size(); l++){
-                Line current = lines.get(l);
-                if(current.p1.getLifetime() < current.p1.getMaxLifetime()) {
-                    current.update();
+            if(useLines) {
+                //update line movement
+                for (int l = 0; l < lines.size(); l++) {
+                    Line current = lines.get(l);
+                    if (current.p1.getLifetime() < current.p1.getMaxLifetime()) {
+                        current.update();
+                    } else {
+                        lines.remove(current);
+                        l--;
+                    }
                 }
-                else{
-                    lines.remove(current);
-                    l--;
+            }
+            else {
+                //update triangle movement
+                for (int l = 0; l < triangles.size(); l++) {
+                    Triangle current = triangles.get(l);
+                    if (current.p1.getLifetime() < current.p1.getMaxLifetime()) {
+                        current.update();
+                    } else {
+                        triangles.remove(current);
+                        l--;
+                    }
                 }
             }
             counter = 0;
@@ -128,6 +174,10 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         for(int l = 0; l < lines.size(); l++){
             lines.get(l).draw(mMVPMatrix);
+        }
+
+        for(int t = 0; t < triangles.size(); t++){
+            triangles.get(t).draw(mMVPMatrix);
         }
 
     }
@@ -172,21 +222,31 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     }
 
     public void addParticle(float x, float y, int lifetime, int num){
-        if(touch_delay == 0) {
-            float p_width = ((x / (window_width / 2)) - 1) * window_ratio;
-            Log.d("mtag", "w_width: " + window_width + " w_r: " + window_ratio);
-            float p_height = ((y / (window_height / 2)) - 1) * -1;
-            Log.d("mtag", "p_width: " + p_width + " p_height: " + p_height);
-            for(int i = 0; i < num; i++) {
-                Particle p = new Particle(p_width, p_height, lifetime);
-                allparticles.add(p);
-                newparticles.add(p);
-            }
-            touch_delay = 5;
+        ArrayList<Particle> newparticles = new ArrayList<>();
+        float p_width = ((x / (window_width / 2)) - 1) * window_ratio;
+        Log.d("mtag", "w_width: " + window_width + " w_r: " + window_ratio);
+        float p_height = ((y / (window_height / 2)) - 1) * -1;
+        Log.d("mtag", "p_width: " + p_width + " p_height: " + p_height);
+        for(int i = 0; i < num; i++) {
+            Particle p = new Particle(p_width, p_height, lifetime);
+            allparticles.add(p);
+            newparticles.add(p);
+            newparticles_list.add(newparticles);
         }
 
     }
 
+    public int getDelay(){
+        return touch_delay;
+    }
+
+    public void setDelay(int delay){
+        touch_delay = delay;
+    }
+
+    public void changeMode(){
+        useLines = !useLines;
+    }
 
     public void addLine(Line l){
         lines.add(l);

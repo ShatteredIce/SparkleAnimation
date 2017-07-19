@@ -5,12 +5,21 @@ import android.opengl.GLES20;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Random;
 
 /**
  * Created by 301968 on 6/15/2017.
  */
 
 public class Triangle {
+
+    public Particle p1;
+    public Particle p2;
+    public Particle p3;
+
+    float lightShift;
+
+    static Random random = new Random();
 
     private FloatBuffer vertexBuffer;
 
@@ -45,6 +54,7 @@ public class Triangle {
     float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
 
     public Triangle() {
+        lightShift = 1 - (random.nextInt(51) / 100f);
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(
                 // (number of coordinate values * 4 bytes per float)
@@ -75,6 +85,38 @@ public class Triangle {
 
         // creates OpenGL ES program executables
         GLES20.glLinkProgram(mProgram);
+    }
+
+    public void setVertices(float v0, float v1, float v2, float v3, float v4, float v5, float v6, float v7, float v8) {
+        triangleCoords[0] = v0;
+        triangleCoords[1] = v1;
+        triangleCoords[2] = v2;
+        triangleCoords[3] = v3;
+        triangleCoords[4] = v4;
+        triangleCoords[5] = v5;
+        triangleCoords[6] = v6;
+        triangleCoords[7] = v7;
+        triangleCoords[8] = v8;
+
+        vertexBuffer.put(triangleCoords);
+        // set the buffer to read the first coordinate
+        vertexBuffer.position(0);
+    }
+
+    public void update(){
+        setVertices(p1.getX(), p1.getY(), 0, p2.getX(), p2.getY(), 0, p3.getX(), p3.getY(), 0);
+        float yellow_shift = 0;
+        yellow_shift = 1.0f - (p1.getLifetime() / 20f);
+        yellow_shift = (yellow_shift < 0) ? 0 : yellow_shift;
+        //Log.d("mtag", "shift: " + yellow_shift);
+        setColor(1.0f*lightShift, yellow_shift*lightShift, 0, 1);
+    }
+
+    public void setColor(float red, float green, float blue, float alpha) {
+        color[0] = red;
+        color[1] = green;
+        color[2] = blue;
+        color[3] = alpha;
     }
 
     private final int vertexCount = triangleCoords.length / COORDS_PER_VERTEX;
